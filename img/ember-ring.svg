@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="62%">
+      <stop offset="0" stop-color="#2b1108"/>
+      <stop offset="0.5" stop-color="#140704"/>
+      <stop offset="1" stop-color="#060202"/>
+    </radialGradient>
+    <radialGradient id="haze" cx="50%" cy="50%" r="50%">
+      <stop offset="0.45" stop-color="#ff6a1f" stop-opacity="0"/>
+      <stop offset="0.72" stop-color="#ff6a1f" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#ff6a1f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="char" cx="50%" cy="45%" r="60%">
+      <stop offset="0" stop-color="#4a1a0c"/>
+      <stop offset="0.7" stop-color="#22100a"/>
+      <stop offset="1" stop-color="#120806"/>
+    </radialGradient>
+    <radialGradient id="charHot" cx="50%" cy="42%" r="60%">
+      <stop offset="0" stop-color="#b8360f"/>
+      <stop offset="0.6" stop-color="#5a1a0a"/>
+      <stop offset="1" stop-color="#1e0b06"/>
+    </radialGradient>
+
+    <!-- charcoal with glowing patches: thresholded noise clipped to the shape -->
+    <filter id="coal" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.055" numOctaves="3" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="12" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feColorMatrix in="n" type="matrix" result="o"
+        values="0 0 0 0 1  0 0 0 0 0.40  0 0 0 0 0.07  7 0 0 0 -3.55"/>
+      <feColorMatrix in="n" type="matrix" result="y"
+        values="0 0 0 0 1  0 0 0 0 0.86  0 0 0 0 0.48  9 0 0 0 -5.3"/>
+      <feComposite in="o" in2="shape" operator="in" result="oIn"/>
+      <feComposite in="y" in2="shape" operator="in" result="yIn"/>
+      <feGaussianBlur in="oIn" stdDeviation="1.1" result="oSoft"/>
+      <feGaussianBlur in="oIn" stdDeviation="9" result="halo"/>
+      <feGaussianBlur in="yIn" stdDeviation="0.8" result="ySoft"/>
+      <feMerge>
+        <feMergeNode in="halo"/>
+        <feMergeNode in="shape"/>
+        <feMergeNode in="oSoft"/>
+        <feMergeNode in="ySoft"/>
+      </feMerge>
+    </filter>
+
+    <!-- the pick: same idea, much hotter, edges kept crisp so the shape reads -->
+    <filter id="coalHot" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.075" numOctaves="3" seed="3" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feColorMatrix in="n" type="matrix" result="o"
+        values="0 0 0 0 1  0 0 0 0 0.45  0 0 0 0 0.08  6 0 0 0 -2.0"/>
+      <feColorMatrix in="n" type="matrix" result="y"
+        values="0 0 0 0 1  0 0 0 0 0.9  0 0 0 0 0.6  8 0 0 0 -3.2"/>
+      <feComposite in="o" in2="shape" operator="in" result="oIn"/>
+      <feComposite in="y" in2="shape" operator="in" result="yIn"/>
+      <feGaussianBlur in="oIn" stdDeviation="1" result="oSoft"/>
+      <feGaussianBlur in="shape" stdDeviation="20" result="halo0"/>
+      <feColorMatrix in="halo0" type="matrix" result="halo"
+        values="0 0 0 0 1  0 0 0 0 0.42  0 0 0 0 0.1  0 0 0 0.9 0"/>
+      <feMerge>
+        <feMergeNode in="halo"/>
+        <feMergeNode in="shape"/>
+        <feMergeNode in="oSoft"/>
+        <feMergeNode in="yIn"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="215" fill="url(#haze)"/>
+
+  <!-- ring of charcoal chunks (pick sits at 12 o'clock) -->
+  <g filter="url(#coal)" fill="url(#char)">
+    <path d="M318,112 L360,104 L378,130 L368,160 L330,166 L312,140 Z"/>
+    <path d="M384,176 L414,186 L424,226 L402,246 L378,232 L372,198 Z" fill="url(#charHot)"/>
+    <path d="M388,266 L420,276 L418,318 L392,338 L366,318 L370,284 Z"/>
+    <path d="M340,346 L376,354 L372,392 L338,404 L314,384 L318,356 Z" fill="url(#charHot)"/>
+    <path d="M236,382 L276,378 L294,402 L278,430 L236,432 L220,408 Z"/>
+    <path d="M150,350 L186,356 L196,388 L170,410 L138,396 L134,366 Z" fill="url(#charHot)"/>
+    <path d="M92,276 L124,268 L144,296 L134,330 L100,336 L84,306 Z"/>
+    <path d="M96,184 L128,178 L142,206 L132,240 L98,244 L86,214 Z" fill="url(#charHot)"/>
+    <path d="M150,108 L188,112 L198,142 L180,166 L146,160 L136,132 Z"/>
+  </g>
+
+  <!-- pick-shaped ember -->
+  <g transform="translate(256 112) scale(2.0)">
+    <path filter="url(#coalHot)" fill="url(#charHot)"
+      d="M0,-26 C18,-26 28,-18 28,-5 C28,9 11,27 0,35 C-11,27 -28,9 -28,-5 C-28,-18 -18,-26 0,-26 Z"/>
+  </g>
+
+  <!-- sparks -->
+  <g fill="#ffcf73">
+    <circle cx="270" cy="50" r="2.6" opacity="0.9"/>
+    <circle cx="244" cy="36" r="1.8" opacity="0.65"/>
+    <circle cx="290" cy="24" r="1.3" opacity="0.45"/>
+  </g>
+</svg>

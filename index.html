@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0705">
+  <title>Ember</title>
+  <link rel="icon" href="img/ember.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
+  <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+  <div id="app" class="at-home">
+    <header id="hdr">
+      <button class="homebtn" aria-label="Home"><img src="img/ember.svg" alt=""></button>
+      <span class="title"></span>
+      <button class="mpill" hidden></button>
+      <button class="mic" aria-label="Voice status" data-state="cold"></button>
+    </header>
+
+    <section id="home">
+      <button id="logo" data-state="cold" aria-label="Ember — tap to light, tap again for the menu">
+        <img src="img/ember-mark.svg" alt="Ember">
+      </button>
+    </section>
+
+    <main id="view"></main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/main.js?v=1"></script>
+</body>
+</html>
