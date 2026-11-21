@@ -31,6 +31,10 @@ Sibling project in style: C:\LK\Dev\Sandbox\VoiceCoach.
 - TODO (user asked, not yet done): warmth should reflect practice TIME, not just log count — needs a
   duration on log entries (e.g. timer per item / minutes field), then heat = minutes in last 30 days.
 - Apps Script tables: add new columns only at the END (`sheetFor` extends old headers).
+- `tuner.js`: chromatic (default) / standard EADGBE tuner. McLeod NSDF on 2048-sample analyser windows every
+  50 ms, median of 5, A4 reference 430–450 (settings `a4`, `tunerMode`). Opens its own mic stream with
+  echo cancellation / noise suppression / AGC OFF (they distort pitch); stops it on leaving the view.
+  Test with a fake `getUserMedia` returning an oscillator MediaStream (sawtooth ≈ guitar harmonics).
 - `audio.js` soft cues (no speech — user wants screen-only feedback) and the metronome.
 
 ## User decisions

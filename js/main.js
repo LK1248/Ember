@@ -8,6 +8,7 @@ import { sync, scheduleSync } from './sync.js';
 import { toast, go, esc } from './ui.js';
 import { menuView, topicView, itemView, historyView, settingsView, editView } from './views.js';
 import { triadsView, rollView } from './triads.js';
+import { tunerView } from './tuner.js';
 
 const app = document.getElementById('app');
 const view = document.getElementById('view');
@@ -29,6 +30,7 @@ const ROUTES = [
   [/^#\/new\/(.+)$/, (m) => [editView, { topic: m[1] }]],
   [/^#\/triads(?:\/([^?]+))?(?:\?.*)?$/, (m) => [triadsView, { id: m[1] && decodeURIComponent(m[1]) }]],
   [/^#\/roll(?:\/(\w+))?$/, (m) => [rollView, { what: m[1] }]],
+  [/^#\/tuner(?:\/(\w+))?$/, (m) => [tunerView, { mode: m[1] }]],
   [/^#\/history$/, () => historyView],
   [/^#\/settings$/, () => settingsView],
 ];
@@ -158,6 +160,7 @@ function execute(cmd) {
     }
     case 'sync': sync().then((r) => toast(r.ok ? 'Synced' : r.error, r.ok ? 'ok' : 'err')); return true;
     case 'roll': go(`#/roll/${cmd.what}`); return true;
+    case 'tunerMode': go(`#/tuner/${cmd.mode}`); return true;
     case 'metronome':
       if (cmd.on === null) metronome.toggle(); else if (cmd.on) metronome.start(); else metronome.stop();
       break;

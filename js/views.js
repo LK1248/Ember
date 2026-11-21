@@ -14,7 +14,8 @@ export function menuView(root) {
   const counts = Object.fromEntries(store.TOPICS.map((t) => [t.id, store.allItems().filter((i) => i.topic === t.id).length]));
   root.append(el(`<div class="menu">
     ${store.TOPICS.map((t, i) => `<a class="tile" href="#/topic/${t.id}"><span class="num">${i + 1}</span><b>${esc(t.name)}</b><small>${counts[t.id]} items</small></a>`).join('')}
-    <a class="tile wide hot" href="#/triads"><b>Triad trainer</b><small>4-fret windows · string sets</small></a>
+    <a class="tile hot" href="#/triads"><b>Triad trainer</b><small>4-fret windows · string sets</small></a>
+    <a class="tile hot" href="#/tuner"><b>Tuner</b><small>chromatic · standard</small></a>
     <a class="tile" href="#/roll"><b>Roll</b><small>random key · interval · position</small></a>
     <a class="tile" href="#/history"><b>History</b><small>${store.logEntries().length} entries</small></a>
     <a class="tile wide quiet" href="#/settings"><b>Settings</b><small>${syncConfigured() ? 'sync on' : 'sync not set up'} · voice · sounds</small></a>
@@ -292,6 +293,7 @@ export function settingsView(root, _p, { restartVoice }) {
         <li><b>video · video two · lesson · tabs (or link)</b> — videos play inside Ember; then <b>pause · play · close</b></li>
         <li><b>metronome · metronome ninety · start · stop · faster · slower · faster ten · tempo 120</b></li>
         <li><b>triads · random triads · walk · window seven · show · hide · notes · roles · string set two</b></li>
+        <li><b>tuner · chromatic · standard</b> — in standard mode “string six” … “string one” locks a string</li>
         <li><b>random key · random interval · random position · random progression</b></li>
         <li><b>undo · back · home · menu · history · settings · sync · cancel</b></li>
       </ul>

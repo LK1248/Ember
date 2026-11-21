@@ -24,6 +24,7 @@ const OTHER_WORDS = [
   'undo', 'cancel', 'never', 'mind', 'roll', 'key', 'interval', 'position', 'progression', 'first',
   'last', 'sync', 'hundred', 'and', 'notes', 'roles', 'string', 'strings', 'set', 'up', 'down', 'by',
   'video', 'watch', 'tabs', 'tab', 'link', 'lesson', 'play', 'pause', 'resume',
+  'tuner', 'tune', 'tuning', 'chromatic', 'standard',
 ];
 
 /** Words for a restricted-vocabulary recogniser (plus "[unk]" for everything else). */
@@ -136,7 +137,7 @@ export function parseCommand(text) {
   if (has('hide')) return { type: 'show', on: false };
   if (has('notes')) return { type: 'labels', labels: 'notes' };
   if (has('roles')) return { type: 'labels', labels: 'roles' };
-  if (has('string', 'strings') && has('set')) {
+  if (has('string', 'strings')) { // "string set two" (triads) or "string six" (tuner)
     const n = firstNumber(words);
     return { type: 'stringSet', top: n };
   }
@@ -153,6 +154,9 @@ export function parseCommand(text) {
   if (has('back', 'close')) return { type: 'back' };
   if (has('settings')) return { type: 'nav', to: 'settings' };
   if (has('history')) return { type: 'nav', to: 'history' };
+  if (has('chromatic')) return { type: 'tunerMode', mode: 'chromatic' };
+  if (has('standard')) return { type: 'tunerMode', mode: 'standard' };
+  if (has('tuner', 'tune', 'tuning')) return { type: 'nav', to: 'tuner' };
   if (has('triads', 'triad')) return { type: 'nav', to: 'triads' };
   const topic = words.find((w) => w in TOPIC_WORDS);
   if (topic) {
