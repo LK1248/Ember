@@ -25,6 +25,10 @@ Sibling project in style: C:\LK\Dev\Sandbox\VoiceCoach.
   can't be framed, and voice has no tap for window.open, so they open in place (Back returns).
   "chords" stays a topic word, so the tab command is "tabs"/"link".
 - Topic lists are a numbered tile grid (2 per row on phone) so a number can be spoken without scrolling.
+  `reorder.js`: long-press (450 ms) + drag; saves `order` (and section; songs: Active ⇄ Repertoire toggles
+  `active`) via `store.saveArrangement`. Tile warmth = logs in the last 30 days (`--heat`, muted ember;
+  the user explicitly does NOT want gamification — no badges/streaks/scores).
+- Apps Script tables: add new columns only at the END (`sheetFor` extends old headers).
 - `audio.js` soft cues (no speech — user wants screen-only feedback) and the metronome.
 
 ## User decisions

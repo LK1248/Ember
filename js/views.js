@@ -5,6 +5,7 @@ import * as store from './store.js';
 import { metronome, cue } from './audio.js';
 import { esc, el, toast, go } from './ui.js';
 import { sync, syncConfigured } from './sync.js';
+import { enableReorder } from './reorder.js';
 import { classify, isVideo, playVideo, openExternal, videoOpen, videoCommand, closeVideo } from './links.js';
 
 // ---- menu -------------------------------------------------------------------------
@@ -37,19 +38,22 @@ export function topicView(root, { id, n }) {
   let sel = -1;
 
   const wrap = el(`<div class="tlist"></div>`);
+  const counts = store.recentCounts(30);
   let k = 0;
   for (const g of groups) {
     if (groups.length > 1) wrap.append(el(`<h3 class="sec">${esc(g.section)}</h3>`));
-    const grid = el(`<div class="grid"></div>`);
+    const grid = el(`<div class="grid" data-section="${esc(g.section)}"></div>`);
     for (const it of g.items) {
       k++;
       const last = store.lastLog(it.id);
+      // warmth: times logged in the last 30 days (10+ = full), gently eased
+      const heat = Math.pow(Math.min(counts[it.id] || 0, 10) / 10, 0.75).toFixed(2);
       const meta = [
         it.setlist && '<i class="star" title="setlist">★</i>',
         it.bpm && `${it.bpm}`,
         last && `${store.ago(last.date)}${last.grade ? ` <em class="g g${last.grade}">${last.grade}</em>` : ''}`,
       ].filter(Boolean).join(' · ');
-      grid.append(el(`<a class="cell" href="#/item/${encodeURIComponent(it.id)}">
+      grid.append(el(`<a class="cell" data-id="${esc(it.id)}" style="--heat:${heat}" title="${counts[it.id] || 0}× in the last 30 days" href="#/item/${encodeURIComponent(it.id)}">
         <span class="num">${k}</span>
         <b dir="auto">${esc(it.name)}</b>
         ${meta ? `<small>${meta}</small>` : ''}
@@ -57,8 +61,19 @@ export function topicView(root, { id, n }) {
     }
     wrap.append(grid);
   }
+  wrap.append(el(`<p class="hint grid-hint">Hold a tile to move it · warmer tiles = practiced more in the last 30 days</p>`));
   wrap.append(el(`<a class="btn ghost add" href="#/new/${id}">+ Add item</a>`));
   root.append(wrap);
+
+  const dispose = enableReorder(wrap, (grids) => {
+    store.saveArrangement(id, grids.map(({ grid, ids }) => ({ section: grid.dataset.section, ids })));
+    renumber();
+  });
+  // keep the spoken numbers in step with the new order
+  function renumber() {
+    rows().forEach((c, i) => (c.querySelector('.num').textContent = i + 1));
+    flat.splice(0, flat.length, ...rows().map((c) => store.getItem(c.dataset.id)));
+  }
 
   const rows = () => [...wrap.querySelectorAll('.cell')];
   function select(i) {
@@ -71,6 +86,7 @@ export function topicView(root, { id, n }) {
 
   return {
     title: topic.name,
+    cleanup: dispose,
     handle(cmd) {
       switch (cmd.type) {
         case 'next': select(sel + 1); return true;

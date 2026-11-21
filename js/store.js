@@ -70,11 +70,44 @@ export function topicItems(topicId) {
   const t = TOPICS.find((x) => x.id === topicId);
   // active songs are listed under "Active" whatever section they came from
   const items = allItems().filter((it) => it.topic === topicId)
-    .map((it) => (topicId === 'songs' && it.active ? { ...it, section: 'Active' } : it));
+    .map((it, i) => ({ ...it, section: topicId === 'songs' && it.active ? 'Active' : it.section, _i: i }));
   const order = [];
   for (const it of items) if (!order.includes(it.section)) order.push(it.section);
   if (t?.sections) order.sort((a, b) => idx(t.sections, a) - idx(t.sections, b));
-  return order.map((section) => ({ section, items: items.filter((it) => it.section === section) }));
+  // a saved manual order (long-press drag) wins; otherwise the sheet's order
+  const rank = (it) => (it.order ?? it._i * 10);
+  return order.map((section) => ({
+    section,
+    items: items.filter((it) => it.section === section).sort((a, b) => rank(a) - rank(b)),
+  }));
+}
+
+/** Save a dragged arrangement: [{section, ids:[...]}] for the grids that changed. */
+export function saveArrangement(topicId, groups) {
+  const now = Date.now();
+  for (const { section, ids } of groups) {
+    ids.forEach((id, i) => {
+      const base = SEED_ITEMS.find((s) => s.id === id) || {};
+      const cur = { ...base, ...state.items[id] };
+      const patch = { order: i * 10, section };
+      if (topicId === 'songs') {
+        patch.active = section === 'Active';
+        if (section !== 'Active' && cur.section === 'Active') patch.section = 'Repertoire';
+      }
+      state.items[id] = { ...cur, ...patch, updatedAt: now };
+    });
+  }
+  save();
+}
+
+/** How many times each item was logged in the last `days` days. */
+export function recentCounts(days = 30) {
+  const since = new Date(Date.now() - days * 86400000).toISOString();
+  const counts = {};
+  for (const e of Object.values(state.log)) {
+    if (!e.deleted && e.date >= since) counts[e.itemId] = (counts[e.itemId] || 0) + 1;
+  }
+  return counts;
 }
 const idx = (arr, v) => (arr.indexOf(v) < 0 ? 99 : arr.indexOf(v));
 

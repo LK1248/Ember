@@ -9,7 +9,7 @@ const SECRET = 'PASTE-YOUR-OWN-LONG-RANDOM-KEY-HERE';
 
 const TABLES = {
   Log: ['id', 'date', 'itemId', 'item', 'topic', 'grade', 'bpm', 'mode', 'note', 'updatedAt', 'deleted'],
-  Items: ['id', 'topic', 'section', 'name', 'bpm', 'note', 'links', 'active', 'setlist', 'kind', 'method', 'chords', 'updatedAt', 'deleted'],
+  Items: ['id', 'topic', 'section', 'name', 'bpm', 'note', 'links', 'active', 'setlist', 'kind', 'method', 'chords', 'updatedAt', 'deleted', 'order'], // new columns go at the end
 };
 
 function doGet() {
@@ -45,6 +45,11 @@ function sheetFor(name) {
     sh.getRange(1, 1, sh.getMaxRows(), cols.length).setNumberFormat('@'); // keep text as text
     sh.getRange(1, 1, 1, cols.length).setValues([cols]).setFontWeight('bold');
     sh.setFrozenRows(1);
+  } else if (sh.getLastColumn() < TABLES[name].length) {
+    // script updated with new columns: extend the header (old rows just leave them blank)
+    const cols = TABLES[name];
+    sh.getRange(1, 1, sh.getMaxRows(), cols.length).setNumberFormat('@');
+    sh.getRange(1, 1, 1, cols.length).setValues([cols]).setFontWeight('bold');
   }
   return sh;
 }
@@ -94,7 +99,7 @@ function readAll(name) {
       let v = r[i];
       if (v === '' || v === null) return;
       if (c === 'links') { try { v = JSON.parse(v); } catch (e) { v = []; } }
-      else if (c === 'bpm' || c === 'updatedAt') v = Number(v);
+      else if (c === 'bpm' || c === 'updatedAt' || c === 'order') v = Number(v);
       else if (c === 'active' || c === 'setlist' || c === 'deleted') v = String(v) === 'true';
       else v = String(v);
       o[c] = v;

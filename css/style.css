@@ -294,3 +294,20 @@ button.chip { font: inherit; color: inherit; cursor: pointer; }
 .pctl { display: flex; gap: 8px; }
 .pctl .btn { flex: 1; }
 .player .hint { text-align: center; }
+
+/* practice warmth: --heat 0..1 from logs in the last 30 days (muted ember, never bright) */
+.cell {
+  background: color-mix(in srgb, #723014 calc(var(--heat, 0) * 100%), var(--surface));
+  border-color: color-mix(in srgb, #8a3a16 calc(var(--heat, 0) * 100%), #2a160d);
+  -webkit-touch-callout: none; user-select: none; -webkit-user-select: none;
+}
+.grid-hint { margin: 10px 2px 0; }
+
+/* long-press drag */
+.cell.placeholder { opacity: .25; border-style: dashed; }
+.cell.ghost {
+  position: fixed; z-index: 30; pointer-events: none; margin: 0;
+  transform: scale(1.06); box-shadow: 0 10px 30px #000a, 0 0 0 2px var(--ember);
+  background: var(--surface2);
+}
+body.dragging { user-select: none; -webkit-user-select: none; touch-action: none; }
