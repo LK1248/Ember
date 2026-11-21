@@ -20,6 +20,11 @@ Sibling project in style: C:\LK\Dev\Sandbox\VoiceCoach.
 - `commands.js` parser (spoken numbers: "one forty five" = 145, "one oh five" = 105).
 - `theory.js` chords/keys/triad shapes; `fretboard.js` SVG (high e on top). String sets are listed low
   string first ([3,2,1]); bass = first element.
+- `links.js`: item links → video (YouTube, not "lesson"), lesson, tabs (everything else). Videos play in an
+  in-app overlay (youtube-nocookie embed, play/pause via postMessage) so the mic keeps listening; tab sites
+  can't be framed, and voice has no tap for window.open, so they open in place (Back returns).
+  "chords" stays a topic word, so the tab command is "tabs"/"link".
+- Topic lists are a numbered tile grid (2 per row on phone) so a number can be spoken without scrolling.
 - `audio.js` soft cues (no speech — user wants screen-only feedback) and the metronome.
 
 ## User decisions

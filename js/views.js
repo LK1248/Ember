@@ -5,6 +5,7 @@ import * as store from './store.js';
 import { metronome, cue } from './audio.js';
 import { esc, el, toast, go } from './ui.js';
 import { sync, syncConfigured } from './sync.js';
+import { classify, isVideo, playVideo, openExternal, videoOpen, videoCommand, closeVideo } from './links.js';
 
 // ---- menu -------------------------------------------------------------------------
 
@@ -35,25 +36,31 @@ export function topicView(root, { id, n }) {
   const flat = groups.flatMap((g) => g.items);
   let sel = -1;
 
-  const wrap = el(`<div class="list"></div>`);
+  const wrap = el(`<div class="tlist"></div>`);
   let k = 0;
   for (const g of groups) {
-    wrap.append(el(`<h3 class="sec">${esc(g.section)}</h3>`));
+    if (groups.length > 1) wrap.append(el(`<h3 class="sec">${esc(g.section)}</h3>`));
+    const grid = el(`<div class="grid"></div>`);
     for (const it of g.items) {
       k++;
       const last = store.lastLog(it.id);
-      const badges = [it.active && '<i class="b act">active</i>', it.setlist && '<i class="b set">setlist</i>', it.bpm && `<i class="b">${it.bpm} bpm</i>`].filter(Boolean).join('');
-      wrap.append(el(`<a class="row" href="#/item/${encodeURIComponent(it.id)}" data-i="${k - 1}">
+      const meta = [
+        it.setlist && '<i class="star" title="setlist">★</i>',
+        it.bpm && `${it.bpm}`,
+        last && `${store.ago(last.date)}${last.grade ? ` <em class="g g${last.grade}">${last.grade}</em>` : ''}`,
+      ].filter(Boolean).join(' · ');
+      grid.append(el(`<a class="cell" href="#/item/${encodeURIComponent(it.id)}">
         <span class="num">${k}</span>
-        <span class="main"><b dir="auto">${esc(it.name)}</b>${badges ? `<span class="badges">${badges}</span>` : ''}</span>
-        <span class="meta">${last ? `${store.ago(last.date)}${last.grade ? ` · <em class="g g${last.grade}">${last.grade}</em>` : ''}` : ''}</span>
+        <b dir="auto">${esc(it.name)}</b>
+        ${meta ? `<small>${meta}</small>` : ''}
       </a>`));
     }
+    wrap.append(grid);
   }
   wrap.append(el(`<a class="btn ghost add" href="#/new/${id}">+ Add item</a>`));
   root.append(wrap);
 
-  const rows = () => [...wrap.querySelectorAll('.row')];
+  const rows = () => [...wrap.querySelectorAll('.cell')];
   function select(i) {
     sel = Math.max(0, Math.min(flat.length - 1, i));
     rows().forEach((r, j) => r.classList.toggle('sel', j === sel));
@@ -93,7 +100,10 @@ export function itemView(root, { id }) {
       <div class="crumbs"><a href="#/topic/${item.topic}">${esc(store.TOPICS.find((t) => t.id === item.topic)?.name)}</a> · ${esc(item.section)} · ${pos + 1}/${siblings.length}</div>
       <h2 dir="auto">${esc(item.name)}</h2>
       ${item.note ? `<p class="note" dir="auto">${esc(item.note)}</p>` : ''}
-      <div class="links">${(item.links || []).map((l) => `<a class="chip" target="_blank" rel="noopener" href="${esc(l.url)}">${esc(l.label)} ↗</a>`).join('')}</div>
+      <div class="links">${(item.links || []).map((l, i) => isVideo(l.url)
+        ? `<button class="chip vid" data-li="${i}">▶ ${esc(l.label)}</button>`
+        : `<a class="chip" target="_blank" rel="noopener" href="${esc(l.url)}">${esc(l.label)} ↗</a>`).join('')}</div>
+      ${(item.links || []).length ? `<p class="hint say">Say “Ember, ${[classify(item.links).video.length && 'video', classify(item.links).tabs.some((l) => !isVideo(l.url)) && 'tabs', classify(item.links).lesson.length && 'lesson'].filter(Boolean).join('” · “Ember, ')}”</p>` : ''}
       ${item.kind === 'triad' ? `<a class="btn hot big" href="#/triads/${encodeURIComponent(item.id)}">Open in triad trainer</a>` : ''}
     </div>
 
@@ -152,6 +162,16 @@ export function itemView(root, { id }) {
   card.querySelectorAll('#lmode button').forEach((b) => b.onclick = () => { form.mode = b.dataset.m; paintForm(); });
   tempoIn.oninput = () => (tempoIn.dataset.touched = '1');
   $('#logbtn').onclick = () => doLog({});
+  card.querySelectorAll('[data-li]').forEach((b) => b.onclick = () => playVideo(item.links[Number(b.dataset.li)], item.name));
+
+  function openLink(kind, n) {
+    const list = classify(item.links)[kind] || [];
+    const link = list[Math.min(list.length, Math.max(1, n)) - 1];
+    if (!link) return false;
+    if (isVideo(link.url)) playVideo(link, item.name);
+    else openExternal(link.url);
+    return true;
+  }
   $('#hist').onclick = (e) => {
     const d = e.target.dataset.del;
     if (d) { store.deleteLog(d); paintHist(); }
@@ -182,9 +202,14 @@ export function itemView(root, { id }) {
     title: item.name,
     itemId: id,
     refresh: paintMetro,
-    cleanup() { metronome.onBeat = prevBeat; },
+    cleanup() { metronome.onBeat = prevBeat; closeVideo(); },
     handle(cmd) {
+      if (videoOpen()) {
+        if (cmd.type === 'media') return videoCommand(cmd.action);
+        if (cmd.type === 'back' || cmd.type === 'cancel') { closeVideo(); return true; }
+      }
       switch (cmd.type) {
+        case 'link': return openLink(cmd.kind, cmd.n);
         case 'log': doLog(cmd); return true;
         case 'mode': form.mode = cmd.mode; paintForm(); return true;
         case 'next': if (siblings[pos + 1]) go(`#/item/${encodeURIComponent(siblings[pos + 1].id)}`); return !!siblings[pos + 1];
@@ -248,6 +273,7 @@ export function settingsView(root, _p, { restartVoice }) {
         <li><b>songs · technique · fretboard · chords · ear · improvisation</b> — open a topic (“songs three” opens item 3)</li>
         <li><b>next · previous · open · number 5 · first · last · random</b></li>
         <li><b>log B · log A one forty · log fail · log B pick</b> — log the open item</li>
+        <li><b>video · video two · lesson · tabs (or link)</b> — videos play inside Ember; then <b>pause · play · close</b></li>
         <li><b>metronome · metronome ninety · start · stop · faster · slower · faster ten · tempo 120</b></li>
         <li><b>triads · random triads · walk · window seven · show · hide · notes · roles · string set two</b></li>
         <li><b>random key · random interval · random position · random progression</b></li>

@@ -18,7 +18,8 @@ self.addEventListener('fetch', (e) => {
       if (hit) return hit;
     }
     try {
-      const res = await fetch(req);
+      // revalidate app files every time so a new version never mixes with stale modules
+      const res = await fetch(req, isModel ? {} : { cache: 'no-cache' });
       if (res.ok) cache.put(req, res.clone());
       return res;
     } catch {

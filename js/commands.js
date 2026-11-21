@@ -23,6 +23,7 @@ const OTHER_WORDS = [
   'faster', 'slower', 'tempo', 'show', 'hide', 'random', 'walk', 'window', 'fret', 'item', 'number',
   'undo', 'cancel', 'never', 'mind', 'roll', 'key', 'interval', 'position', 'progression', 'first',
   'last', 'sync', 'hundred', 'and', 'notes', 'roles', 'string', 'strings', 'set', 'up', 'down', 'by',
+  'video', 'watch', 'tabs', 'tab', 'link', 'lesson', 'play', 'pause', 'resume',
 ];
 
 /** Words for a restricted-vocabulary recogniser (plus "[unk]" for everything else). */
@@ -76,6 +77,13 @@ export function parseCommand(text) {
   if (has('cancel') || (has('never') && has('mind'))) return { type: 'cancel' };
   if (has('undo')) return { type: 'undo' };
   if (has('sync')) return { type: 'sync' };
+
+  // links on the open item: "video", "video two", "tabs", "link", "lesson"
+  if (has('video', 'watch')) return { type: 'link', kind: 'video', n: firstNumber(words) || 1 };
+  if (has('lesson')) return { type: 'link', kind: 'lesson', n: firstNumber(words) || 1 };
+  if (has('tabs', 'tab', 'link')) return { type: 'link', kind: 'tabs', n: firstNumber(words) || 1 };
+  if (has('play', 'resume')) return { type: 'media', action: 'play' };
+  if (has('pause')) return { type: 'media', action: 'pause' };
 
   if (has('log', 'grade')) {
     const i = words.findIndex((w) => w === 'log' || w === 'grade');
